@@ -8,7 +8,7 @@ Die jetzige Studienarbeit wird von Vincenzo Ciullo und Dennis Wiebe durchgeführ
 
 Aktuelle Commits am Code werden in einem öffentlichen separaten Repository realisiert.
 
-**Repository:**  https://github.com/ANTHLD/NAO-VR-TINF18/tree/master
+**Repository:**  https://github.com/ANTHLD/NAO-VR-TINF18
 
 ## Inhalte
 
