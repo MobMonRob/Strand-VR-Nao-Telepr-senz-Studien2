@@ -3,6 +3,9 @@ using RosSharp.RosBridgeClient;
 using RosSharp.RosBridgeClient.Services;
 using UnityEngine;
 using msgs = RosSharp.RosBridgeClient.Messages;
+using System.Linq;
+using System;
+using Valve.VR;
 
 namespace NaoApi.Walker
 {
@@ -10,35 +13,96 @@ namespace NaoApi.Walker
     {
         public RosSocket socket;
         public StiffnessController stiffnessController;
+
         private string publication_id;
+        private Valve.VR.SteamVR_TrackedObject _walkTracker;
+        private Valve.VR.SteamVR_TrackedObject _turnTracker;
+
+        private Vector3 _currentTurnPosition;
+        private bool _walking, _turning;
+        private bool _crouched;
+
         void Start()
         {
             GameObject Connector = GameObject.FindWithTag("Connector");
             socket = Connector.GetComponent<RosConnector>()?.RosSocket;
             publication_id = socket.Advertise<msgs.Geometry.Twist>("/cmd_vel");
+
+            var trackedObjects = FindObjectsOfType<Valve.VR.SteamVR_TrackedObject>();
+            _walkTracker = trackedObjects.FirstOrDefault(u => u.index == Valve.VR.SteamVR_TrackedObject.EIndex.Device2);
+            _turnTracker = trackedObjects.FirstOrDefault(u => u.index == Valve.VR.SteamVR_TrackedObject.EIndex.Device1);
         }
 
         private void Update()
         {
-            if (Input.GetKeyUp(KeyCode.UpArrow)|| Input.GetKeyUp(KeyCode.RightArrow)|| Input.GetKeyUp(KeyCode.LeftArrow))
-            {
-                stopWalking();
-            }
+            if (_currentTurnPosition == Vector3.zero)
+                _currentTurnPosition = _turnTracker.transform.eulerAngles;
 
-            if (Input.GetKeyDown(KeyCode.UpArrow))
+            // WALK
+            var walkPosition = _walkTracker.transform.position.y;
+            if (walkPosition > 0.75)
             {
+                _walking = true;
                 walkAhead();
+                System.Threading.Thread.Sleep(1250);
+                stopMoving();
+                _walking = false;
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            // CROUCH
+            var crouchPosition = _turnTracker.transform.position.y;
+            if (crouchPosition < 0.7 && !_crouched)
             {
-                turnLeft();
+                _crouched = true;
+                stiffnessController.speech.Pose(stiffnessController.speech.CROUCH);
+            }
+            else if (crouchPosition > 2.5 && _crouched)
+            {
+                _crouched = false;
+                stiffnessController.speech.Pose(stiffnessController.speech.STAND_INIT);
             }
 
-            if (Input.GetKeyDown(KeyCode.RightArrow))
+            // TURN
+            var turnPosition = _turnTracker.transform.eulerAngles.y;
+            var items = GetRotateDirection(_currentTurnPosition.y, turnPosition);
+            if (!_turning)
             {
-                turnRight();
+                if (items.Item1)
+                    TurnRobot(items.Item2, turnRight);
+                else
+                    TurnRobot(items.Item3, turnLeft);
             }
+        }
+
+        private void TurnRobot(float degrees, Action turnMethod)
+        {
+            if (degrees >= 85 && degrees <= 90)
+            {
+                _turning = true;
+                turnMethod();
+                System.Threading.Thread.Sleep(2100);
+                stopMoving();
+                _currentTurnPosition = _turnTracker.transform.eulerAngles;
+                _turning = false;
+            }
+        }
+
+        private Tuple<bool, float, float> GetRotateDirection(float from, float to)
+        {
+            float clockWise = 0f;
+            float counterClockWise = 0f;
+
+            if (from <= to)
+            {
+                clockWise = to - from;
+                counterClockWise = from + (360 - to);
+            }
+            else
+            {
+                clockWise = (360 - from) + to;
+                counterClockWise = from - to;
+            }
+            return new Tuple<bool, float, float>((clockWise <= counterClockWise), clockWise, counterClockWise);
         }
 
         public void walkAhead()
@@ -67,7 +131,7 @@ namespace NaoApi.Walker
             linear.z = 0.0f;
             angular.x = 0.0f;
             angular.y = 0.0f;
-            angular.z = 0.5f;
+            angular.z = 1.0f;
             message.linear = linear;
             message.angular = angular;
             socket.Publish(publication_id, message);
@@ -83,12 +147,12 @@ namespace NaoApi.Walker
             linear.z = 0.0f;
             angular.x = 0.0f;
             angular.y = 0.0f;
-            angular.z = -0.5f;
+            angular.z = -1.0f;
             message.linear = linear;
             message.angular = angular;
             socket.Publish(publication_id, message);
         }
-        public void stopWalking()
+        public void stopMoving()
         {
             msgs.Geometry.Vector3 linear = new msgs.Geometry.Vector3();
             msgs.Geometry.Vector3 angular = new msgs.Geometry.Vector3();
