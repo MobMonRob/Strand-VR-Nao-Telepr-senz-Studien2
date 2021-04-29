@@ -14,7 +14,7 @@ Aktuelle Commits am Code werden in einem öffentlichen separaten Repository real
 
 - Verbesserung der Usability mit dem NAO-Roboter
   - Anpassung der Kameras und dessen Halterung
-  - Steigerung der Benutzerfreundlichkiet und Interaktion mit dem NAO Roboter
+  - Steigerung der Benutzerfreundlichkeit und Interaktion mit dem NAO Roboter
   - Fehlende und/oder fehlerhafte Funktionen korrigiert oder implementiert
 - Integration von HTC VIVE TRACKERN
   - Überwachung und Auswertung von Position und Winkel im Bezug zum Benutzer
