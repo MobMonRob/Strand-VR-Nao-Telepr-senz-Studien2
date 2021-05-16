@@ -1,4 +1,4 @@
-# Strand-VR-Nao-Telepr-senz-Studien2
+# Strand-VR-Nao-Telepräsenz-Studien2
 
 Diese Studienarbeit ist ein Folgeprojekt von "NAO-Telepräsenz" von Jannis Schneider und Dennis Jahnke.
 
