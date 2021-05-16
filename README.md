@@ -1,6 +1,6 @@
 # Strand-VR-Nao-Telepräsenz-Studien2
 
-Diese Studienarbeit ist ein Folgeprojekt von "NAO-Telepräsenz" bzw "NaoVR"von Jannis Schneider und Dennis Jahnke.
+Diese Studienarbeit ist ein Folgeprojekt von "NAO-Telepräsenz" bzw. "NaoVR - Nao Access over Virtual Reality"von Jannis Schneider und Dennis Jahnke.
 
 ## Code & Github-Repository
 
